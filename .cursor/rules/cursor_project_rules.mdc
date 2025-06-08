@@ -1,0 +1,158 @@
+---
+description: Apply these rules when creating the project
+globs:
+alwaysApply: true
+---
+## Project Overview
+
+*   **Type:** Web Application (SaaS)
+*   **Description:** A lightweight, AI-powered roadmap and feedback tool for solo founders and small teams building in public.
+*   **Primary Goal:** Turn user feedback into public momentum by enabling transparent roadmap management, voting, and AI-driven insights.
+
+## Project Structure
+
+### Framework-Specific Routing
+
+*   **Directory Rules:**
+
+    *   `Next.js 14`: Use the App Router convention with nested `app/[route]/page.tsx` files.
+    *   Example 1: "Next.js 14 (App Router)" → `app/dashboard/page.tsx`, `app/api/feedback/route.ts`
+    *   Example 2: "Next.js (Pages Router)" → `pages/index.tsx`, `pages/api/feedback.ts`
+    *   Example 3: "React Router 6" → `src/routes/` with `createBrowserRouter`
+
+### Core Directories
+
+*   **Versioned Structure:**
+
+    *   `app/`: Next.js 14 App Router root
+    *   `app/api`: Next.js 14 API routes with Route Handlers
+    *   `app/auth`: Authentication pages and server actions (Clerk integration)
+    *   `app/embed`: Public embed widget implementation
+    *   `app/dashboard`: Founder dashboard pages
+    *   `app/(public)`: Landing, roadmap widget pages
+    *   `styles/`: Tailwind CSS configuration and global styles
+    *   `lib/`: Shared utilities (TypeScript helpers, API clients)
+
+### Key Files
+
+*   **Stack-Versioned Patterns:**
+
+    *   `app/layout.tsx`: Next.js 14 root layout, Shadcn UI theme provider
+    *   `app/page.tsx`: Public landing and dashboard entry points
+    *   `next.config.js`: Next.js 14 configuration (experimental appDir: true)
+    *   `tailwind.config.js`: Tailwind CSS v3 JIT setup
+    *   `tsconfig.json`: TypeScript 5 strict mode
+    *   `app/api/feedback/route.ts`: Supabase-backed feedback route handler
+    *   `app/api/clustering/route.ts`: OpenAI-backed clustering service
+
+## Tech Stack Rules
+
+*   **Version Enforcement:**
+
+    *   `next@14`: App Router required, no `pages/` directory, no `getInitialProps` or custom `_app.js`/`_document.js`.
+    *   `typescript@5`: `strict`, `noImplicitAny`, `strictNullChecks` enabled.
+    *   `tailwindcss@3`: JIT mode enabled, purge paths include `app/**/*.{tsx,ts}`.
+    *   `shadcn-ui@latest`: Use predefined components only via `app/components/`.
+    *   `clerk@4`: Use Next.js middleware for auth, server-component-safe tokens.
+    *   `@supabase/supabase-js@2`: Instantiate only in server components or route handlers.
+    *   `stripe@latest`: Use server actions and webhooks in `app/api/stripe/route.ts`.
+    *   `openai@3`: Rate-limit handling and response validation in `lib/openai.ts`.
+    *   `node@18+`: ESM modules, top-level await allowed in Dev commands via Bolt.
+
+## PRD Compliance
+
+*   "Embeddable widget for public feedback and evolving roadmap": Must implement `app/embed/widget.tsx` exposing a script tag loader.
+*   "Social Sharing Engine": Include `app/components/share-button.tsx` that auto-generates Twitter and LinkedIn posts on status updates.
+*   "AI-Powered Feedback Insights": All clustering and sentiment analysis calls must be implemented in `app/api/clustering/route.ts` using OpenAI.
+
+## App Flow Integration
+
+*   Next.js 14 Auth Flow → `app/auth/login/page.tsx` and `app/auth/register/page.tsx` using Clerk server actions and Next.js middleware.
+*   Public Roadmap Widget → `app/(public)/roadmap/[projectId]/page.tsx`, uses server components to fetch live Supabase data.
+*   Feedback Submission → POST to `app/api/feedback/route.ts`, real-time WebSocket via `lib/ws.ts` or fallback polling.
+*   Dashboard Updates → `app/dashboard/page.tsx` with `use` and Suspense for live data, `app/api/clustering/route.ts` for insights.
+
+## Best Practices
+
+*   Next.js 14
+
+    *   Use `app/` directory exclusively; avoid `pages/`.
+    *   Favor Server Components for data fetching.
+    *   Use Route Handlers for all API endpoints.
+    *   Leverage ISR or revalidation for public traffic.
+
+*   TypeScript 5
+
+    *   Enable `strict` mode and `noUncheckedIndexedAccess`.
+    *   Define `zod` schemas for API contracts.
+    *   Avoid `any`; prefer unknown + refinement.
+
+*   Tailwind CSS 3
+
+    *   Use JIT mode and Tailwind directives in `globals.css`.
+    *   Extract design tokens to `theme` in `tailwind.config.js`.
+    *   Purge all `app/**/*` and `components/**/*`.
+
+*   Shadcn UI
+
+    *   Import only the needed components to reduce bundle size.
+    *   Wrap app in `ThemeProvider` in `app/layout.tsx`.
+    *   Override default styles via `tailwind.config.js` theme extensions.
+
+*   Clerk Auth
+
+    *   Protect server components with `auth()` helper.
+    *   Use Next.js middleware to redirect unauthenticated users.
+
+*   Supabase JS
+
+    *   Use Edge Runtime when instantiating client in route handlers.
+    *   Leverage RLS and service-role keys only in Edge Functions.
+
+*   OpenAI API
+
+    *   Centralize API calls in `lib/openai.ts` with caching.
+    *   Handle rate limits and errors gracefully.
+
+*   Stripe
+
+    *   Validate webhooks in `app/api/stripe/webhook/route.ts`.
+    *   Keep secret keys in environment variables; use `process.env.STRIPE_SECRET_KEY`.
+
+*   Bolt
+
+    *   Enforce project conventions via pre-commit hooks.
+    *   Use Bolt CLI for scaffolding new features.
+
+*   Cursor
+
+    *   Instrument all code edits with cursor context.
+    *   Track metrics in `cursor_metrics.md` as per metrics rules.
+
+## Rules
+
+*   Derive folder/file patterns directly from `techStackDoc` versions.
+*   If Next.js 14 App Router: Enforce `app/` directory with nested route folders; no `pages/`.
+*   Never mix App Router and Pages Router patterns.
+*   All API code must live under `app/api/` as Route Handlers.
+*   Use Shadcn UI within `app/components/` only; no global component imports.
+
+## Rules Metrics
+
+Before starting the project development, create a metrics file in the root of the project called `cursor_metrics.md`.
+
+### Instructions:
+
+*   Each time a cursor rule is used as context, update `cursor_metrics.md`.
+*   Use the following format for `cursor_metrics.md`:
+
+# Rules Metrics
+
+## Usage
+
+The number of times rules is used as context
+
+*   next-app-router.mdc: 0
+*   supabase-edge-client.mdc: 0
+*   openai-rate-limit.mdc: 0
+*   ...other rules
