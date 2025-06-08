@@ -10,6 +10,14 @@ const config: Config = {
 	theme: {
 		extend: {
 			colors: {
+				// DefaultPublic Brand Colors
+				'jet-black': '#000000',
+				'crisp-white': '#FFFFFF',
+				'electric-yellow': '#FFD700',
+				'hot-coral': '#FF4040',
+				'deep-purple': '#800080',
+				'saturated-blue': '#0000FF',
+				
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				card: {
@@ -60,6 +68,9 @@ const config: Config = {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			fontFamily: {
+				'roboto': ['Roboto', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

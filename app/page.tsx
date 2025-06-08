@@ -1,8 +1,15 @@
 "use client"
 
-import { Hero } from '@/components/ui/animated-hero'
-import Image from 'next/image'
+import { Hero } from '@/components/landing/hero'
+import { Features } from '@/components/landing/features'
+import { CTA } from '@/components/landing/cta'
 
 export default function Home() {
-  return <Hero />
+  return (
+    <main className="min-h-screen">
+      <Hero />
+      <Features />
+      <CTA />
+    </main>
+  )
 }

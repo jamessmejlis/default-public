@@ -15,8 +15,8 @@ const geistMono = localFont({
 })
 
 export const metadata: Metadata = {
-  title: 'CodeGuide Starter Pro',
-  description: 'Starter kit from codeguide.dev',
+  title: 'DefaultPublic - Public-First Feedback & Roadmap Tool',
+  description: 'Turn user feedback into public momentum. The lightweight, AI-powered roadmap tool for solo founders building in public.',
 }
 
 export default function RootLayout({
