@@ -17,7 +17,7 @@ export function CTA() {
   }
 
   return (
-    <section className="py-24 bg-gradient-to-br from-black via-gray-900 to-black">
+    <section id="pricing" className="py-24 bg-gradient-to-br from-black via-gray-900 to-black">
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
