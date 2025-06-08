@@ -6,38 +6,74 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Github, Twitter, ArrowLeft, Zap } from 'lucide-react'
+import { Github, Twitter, ArrowLeft, Zap, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSupabase } from '@/utils/supabase/context'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const router = useRouter()
+  const supabase = useSupabase()
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
     try {
-      // TODO: Implement Clerk email signup
-      console.log('Email signup:', { email, password, name })
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      router.push('/onboarding')
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          }
+        }
+      })
+
+      if (error) {
+        setError(error.message)
+        return
+      }
+
+      if (data.user) {
+        // Check if email confirmation is required
+        if (!data.session) {
+          setError('Please check your email for a confirmation link.')
+        } else {
+          router.push('/onboarding')
+        }
+      }
     } catch (error) {
       console.error('Signup error:', error)
+      setError('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSocialSignUp = (provider: 'github' | 'twitter') => {
-    // TODO: Implement Clerk social signup
-    console.log(`${provider} signup`)
-    router.push('/onboarding')
+  const handleSocialSignUp = async (provider: 'github' | 'twitter') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/onboarding`
+        }
+      })
+
+      if (error) {
+        setError(error.message)
+      }
+    } catch (error) {
+      console.error(`${provider} signup error:`, error)
+      setError('An unexpected error occurred. Please try again.')
+    }
   }
 
   return (
@@ -61,6 +97,13 @@ export default function SignUpPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             {/* Social Sign Up */}
             <div className="space-y-3">
               <Button

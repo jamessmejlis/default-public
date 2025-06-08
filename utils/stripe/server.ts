@@ -2,7 +2,7 @@
 
 import Stripe from 'stripe';
 import { stripe } from '@/utils/stripe/config';
-import { createClerkSupabaseClientSsr } from '@/utils/supabase/server';
+import { createSupabaseClientSsr } from '@/utils/supabase/server';
 import { createOrRetrieveCustomer, supabaseAdmin } from '@/utils/supabase/admin';
 import {
     getURL,
@@ -10,7 +10,6 @@ import {
     calculateTrialEndUnixTimestamp
 } from '@/utils/helpers';
 import { Tables } from '@/types/database.types';
-import { auth, currentUser } from '@clerk/nextjs/server';
 
 type Price = Tables<'prices'>;
 
@@ -22,13 +21,14 @@ export async function checkoutWithStripe(
 ) {
     try {
         // Get the user from Supabase auth
-        const user = await currentUser()
+        const supabase = await createSupabaseClientSsr();
+        const { data: { user }, error } = await supabase.auth.getUser();
 
         if (referralId) {
             console.log("checkout with referral id:", referralId)
         }
 
-        if (!user) {
+        if (!user || error) {
             throw new Error('Could not get user session.');
         }
 
@@ -37,7 +37,7 @@ export async function checkoutWithStripe(
         try {
             customer = await createOrRetrieveCustomer({
                 uuid: user.id || '',
-                email: user?.primaryEmailAddress?.emailAddress || '',
+                email: user?.email || '',
                 referral: referralId
             });
         } catch (err) {
@@ -125,7 +125,7 @@ export async function checkoutWithStripe(
 
 export async function createStripePortal(currentPath: string) {
     try {
-        const supabase = await createClerkSupabaseClientSsr();
+        const supabase = await createSupabaseClientSsr();
         const {
             error,
             data: { user }
@@ -187,16 +187,17 @@ export async function createStripePortal(currentPath: string) {
 
 export async function createBillingPortalSession() {
     try {
-        const user = await currentUser()
+        const supabase = await createSupabaseClientSsr();
+        const { data: { user }, error } = await supabase.auth.getUser();
 
-        if (!user) {
+        if (!user || error) {
             throw new Error("No User")
         }
 
-        const { data: customer, error } = await supabaseAdmin.from("customers").select("*").eq("id", user.id).maybeSingle()
+        const { data: customer, error: customerError } = await supabaseAdmin.from("customers").select("*").eq("id", user.id).maybeSingle()
 
-        if (error) {
-            throw error
+        if (customerError) {
+            throw customerError
         }
 
         // Create a billing portal session

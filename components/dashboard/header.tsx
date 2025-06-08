@@ -20,6 +20,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
+import { useSupabase } from '@/utils/supabase/context'
+import { useRouter } from 'next/navigation'
 
 interface DashboardHeaderProps {
   onToggleAnalytics: () => void
@@ -27,6 +29,18 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ onToggleAnalytics, showAnalytics }: DashboardHeaderProps) {
+  const supabase = useSupabase()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push('/')
+    } catch (error) {
+      console.error('Sign out error:', error)
+    }
+  }
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -81,7 +95,7 @@ export function DashboardHeader({ onToggleAnalytics, showAnalytics }: DashboardH
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem className="text-red-600" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>

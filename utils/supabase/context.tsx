@@ -1,37 +1,17 @@
 "use client"
 
-import { useSession } from "@clerk/nextjs";
 import { SupabaseClient, createClient } from "@supabase/supabase-js";
 import { createContext, useContext, useMemo, ReactNode } from "react";
 
 const SupabaseContext = createContext<SupabaseClient | undefined>(undefined);
 
 export function SupabaseProvider({ children }: { children: ReactNode }) {
-    const { session } = useSession();
-
     const supabase = useMemo(() => {
         return createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_KEY!,
-            {
-                global: {
-                    fetch: async (url, options = {}) => {
-                        const clerkToken = await session?.getToken({
-                            template: 'supabase',
-                        });
-
-                        const headers = new Headers(options?.headers);
-                        headers.set('Authorization', `Bearer ${clerkToken}`);
-
-                        return fetch(url, {
-                            ...options,
-                            headers,
-                        });
-                    },
-                },
-            },
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         );
-    }, [session]);
+    }, []);
 
     return (
         <SupabaseContext.Provider value={supabase}>

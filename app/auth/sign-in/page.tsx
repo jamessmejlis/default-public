@@ -6,37 +6,63 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Github, Twitter, ArrowLeft, Zap } from 'lucide-react'
+import { Github, Twitter, ArrowLeft, Zap, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSupabase } from '@/utils/supabase/context'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const router = useRouter()
+  const supabase = useSupabase()
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
     try {
-      // TODO: Implement Clerk email signin
-      console.log('Email signin:', { email, password })
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      router.push('/dashboard')
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        setError(error.message)
+        return
+      }
+
+      if (data.user) {
+        router.push('/dashboard')
+      }
     } catch (error) {
       console.error('Signin error:', error)
+      setError('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSocialSignIn = (provider: 'github' | 'twitter') => {
-    // TODO: Implement Clerk social signin
-    console.log(`${provider} signin`)
-    router.push('/dashboard')
+  const handleSocialSignIn = async (provider: 'github' | 'twitter') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      })
+
+      if (error) {
+        setError(error.message)
+      }
+    } catch (error) {
+      console.error(`${provider} signin error:`, error)
+      setError('An unexpected error occurred. Please try again.')
+    }
   }
 
   return (
@@ -60,6 +86,13 @@ export default function SignInPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             {/* Social Sign In */}
             <div className="space-y-3">
               <Button
